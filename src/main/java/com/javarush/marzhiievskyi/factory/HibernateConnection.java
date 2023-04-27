@@ -8,13 +8,13 @@ import static java.util.Objects.isNull;
 
 public class HibernateConnection {
     private static HibernateConnection instance;
-
     private final SessionFactory sessionFactory;
+
 
     public HibernateConnection() {
         sessionFactory = new Configuration()
-                .addAnnotatedClass(Actor.class)
                 .addAnnotatedClass(Address.class)
+                .addAnnotatedClass(Actor.class)
                 .addAnnotatedClass(Category.class)
                 .addAnnotatedClass(City.class)
                 .addAnnotatedClass(Country.class)
