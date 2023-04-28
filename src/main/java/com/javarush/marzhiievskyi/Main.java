@@ -6,6 +6,7 @@ import com.javarush.marzhiievskyi.factory.HibernateConnection;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
@@ -65,9 +66,44 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-//        Customer customer = main.createCustomer();
-        main.customerReturnInventory();
+        Customer customer = main.createCustomer();
+//        main.customerReturnInventory();
 
+        main.customerRentInventory(customer);
+
+    }
+
+    private void customerRentInventory(Customer customer) {
+        try (Session session = sessionFactory.getCurrentSession()) {
+            session.beginTransaction();
+
+            Film film = filmDAO.getFirstAvalibleFilm();
+            Store store = storeDAO.getItems(0, 1).get(0);
+
+            Inventory inventory = new Inventory();
+            inventory.setFilm(film);
+            inventory.setStore(store);
+            inventoryDAO.save(inventory);
+
+            Staff staffManager = store.getStaffManager();
+
+            Rental rental = new Rental();
+            rental.setRentalDate(LocalDateTime.now());
+            rental.setCustomer(customer);
+            rental.setInventory(inventory);
+            rental.setStaff(staffManager);
+            rentalDAO.save(rental);
+
+            Payment payment = new Payment();
+            payment.setRental(rental);
+            payment.setCustomer(customer);
+            payment.setStaff(staffManager);
+            payment.setPaymentDate(LocalDateTime.now());
+            payment.setAmount(BigDecimal.valueOf(3.99));
+            paymentDAO.save(payment);
+
+            session.getTransaction().commit();
+        }
     }
 
     private void customerReturnInventory() {
