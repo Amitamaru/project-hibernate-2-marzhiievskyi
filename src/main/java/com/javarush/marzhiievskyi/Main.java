@@ -8,6 +8,10 @@ import org.hibernate.SessionFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.Year;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 public class Main {
@@ -29,25 +33,6 @@ public class Main {
     private final StoreDAO storeDAO;
 
     public Main() {
-
-        //ACTUAL PROPERTIES!!!
-        //DELETE AFTER FINISH PROJECT
-
-
-//        Properties properties = new Properties();
-//
-//        properties.put(Environment.DRIVER, "com.p6spy.engine.spy.P6SpyDriver");
-//        properties.put(Environment.URL, "jdbc:p6spy:mysql://localhost:3306/movie");
-//        //=============================================================================
-//        //change to your user and password DB
-//        properties.put(Environment.USER, "root");
-//        properties.put(Environment.PASS, "mysql");
-//        //=============================================================================
-//        properties.put(Environment.DIALECT, "org.hibernate.dialect.MySQL8Dialect");
-//        properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
-//        properties.put(Environment.SHOW_SQL, "true");
-//        properties.put(Environment.HBM2DDL_AUTO, "validate");
-
         actorDAO = new ActorDAO(sessionFactory);
         addressDAO = new AddressDAO(sessionFactory);
         categoryDAO = new CategoryDAO(sessionFactory);
@@ -66,11 +51,48 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-        Customer customer = main.createCustomer();
-//        main.customerReturnInventory();
 
+        Customer customer = main.createCustomer();
+        main.customerReturnInventory();
         main.customerRentInventory(customer);
 
+        Film film = main.wasMadeNewFim();
+
+    }
+
+    private Film wasMadeNewFim() {
+        try (Session session = sessionFactory.getCurrentSession()) {
+            session.beginTransaction();
+
+            Language language = languageDAO.getItems(0, 10).stream().unordered().findAny().get();
+            List<Category> categories = categoryDAO.getItems(0, 3);
+            List<Actor> actors = actorDAO.getItems(0, 30);
+
+            Film film = new Film();
+            film.setActors(new HashSet<>(actors));
+            film.setRating(Rating.PG13);
+            film.setCategories(new HashSet<>(categories));
+            film.setLanguage(language);
+            film.setDescription("Description about new comedy film");
+            film.setSpecialFeatures(Set.of(Feature.BEHIND_THE_SCENES, Feature.TRAILERS, Feature.DELETED_SCENES));
+            film.setLength((short) 123);
+            film.setTitle("Comedy film");
+            film.setReplacementCost(BigDecimal.valueOf(19.99));
+            film.setRentalRate(BigDecimal.ZERO);
+            film.setRentalDuration((byte) 5);
+            film.setOriginalLanguage(language);
+            film.setYear(Year.now());
+            filmDAO.save(film);
+
+            FilmText filmText = new FilmText();
+            filmText.setFilm(film);
+            filmText.setDescription("Description about new comedy film");
+            filmText.setTitle("Comedy film");
+            filmTextDAO.save(filmText);
+
+            session.getTransaction().commit();
+            return film;
+        }
     }
 
     private void customerRentInventory(Customer customer) {
