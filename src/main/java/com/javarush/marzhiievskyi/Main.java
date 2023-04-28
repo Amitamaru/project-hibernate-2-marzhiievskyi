@@ -6,6 +6,8 @@ import com.javarush.marzhiievskyi.factory.HibernateConnection;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.time.LocalDateTime;
+
 
 public class Main {
     private final SessionFactory sessionFactory = HibernateConnection.getSessionfactory();
@@ -63,8 +65,21 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-        Customer customer = main.createCustomer();
+//        Customer customer = main.createCustomer();
+        main.customerReturnInventory();
 
+    }
+
+    private void customerReturnInventory() {
+        try (Session session = sessionFactory.getCurrentSession()) {
+            session.beginTransaction();
+
+            Rental rental = rentalDAO.getSomeUnreturnedInventor();
+            rental.setReturnDate(LocalDateTime.now());
+            rentalDAO.save(rental);
+
+            session.getTransaction().commit();
+        }
     }
 
     private Customer createCustomer() {
@@ -73,8 +88,9 @@ public class Main {
 
             Store store = storeDAO.getItems(0, 1).get(0);
             City city = cityDAO.getByName("Konotop");
+
             Address address = new Address();
-            address.setAddress("Myloslavska 33 str.");
+            address.setAddress("Albe 33 str.");
             address.setCity(city);
             address.setDistrict("ua");
             address.setPhone("+3-8-097-8981723");
@@ -83,11 +99,11 @@ public class Main {
 
             Customer customer = new Customer();
             customer.setStore(store);
-            customer.setFirstName("Amitamaru");
-            customer.setLastName("Desmont");
+            customer.setFirstName("Dimka");
+            customer.setLastName("Mar");
             customer.setAddress(address);
             customer.setIsActive(true);
-            customer.setEmail("amitamaru_desmont@gmail.com");
+            customer.setEmail("desmont@gmail.com");
 
             customerDAO.save(customer);
 
